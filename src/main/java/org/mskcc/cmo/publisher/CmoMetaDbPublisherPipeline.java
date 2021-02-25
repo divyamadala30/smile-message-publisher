@@ -42,8 +42,6 @@ public class CmoMetaDbPublisherPipeline {
             LOG.error(jobName + " failed with exit status: " + jobExecution.getExitStatus());
             System.exit(1);
         }
-        LOG.info("Exiting application...");
-        System.exit(0);
     }
 
     private static JobExecution launchLimsRequestPublisherJob(ConfigurableApplicationContext ctx,
