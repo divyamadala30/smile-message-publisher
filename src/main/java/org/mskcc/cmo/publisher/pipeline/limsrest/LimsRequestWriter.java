@@ -41,18 +41,18 @@ public class LimsRequestWriter implements ItemStreamWriter<Map<String, Object>> 
     public void close() throws ItemStreamException {}
 
     @Override
-    public void write(List<? extends Map<String, Object>> requestResponse) throws Exception {
-        // move this block to writer
-        Gson gson = new Gson();
-        try {
-            String requestJson = gson.toJson(requestResponse);
-            LOG.debug("\nPublishing IGO new request to MetaDB:\n\n"
-                    + requestJson + "\n\n on topic: " + IGO_NEW_REQUEST_TOPIC);
-            messagingGateway.publish(IGO_NEW_REQUEST_TOPIC, requestJson);
-
-        } catch (Exception e) {
-            LOG.error("Error encountered during attempt to process request ids - exiting...");
-            throw new RuntimeException(e);
+    public void write(List<? extends Map<String, Object>> requestResponseList) throws Exception {
+        for (Map<String, Object> request : requestResponseList) {
+            Gson gson = new Gson();
+            try {
+                String requestJson = gson.toJson(request);
+                LOG.debug("\nPublishing IGO new request to MetaDB:\n\n"
+                        + requestJson + "\n\n on topic: " + IGO_NEW_REQUEST_TOPIC);
+                messagingGateway.publish(IGO_NEW_REQUEST_TOPIC, requestJson.getBytes());
+            } catch (Exception e) {
+                LOG.error("Error encountered during attempt to process request ids - exiting...");
+                throw new RuntimeException(e);
+            }
         }
     }
 

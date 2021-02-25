@@ -13,3 +13,6 @@ lims.password=
 lims.request_samples_endpoint=
 lims.sample_manifest_endpoint=
 lims.request_deliveries_endpoint=
+
+# metadb publishing failures filepath
+metadb.publishing_failures_filepath=
