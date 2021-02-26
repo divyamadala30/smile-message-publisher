@@ -37,6 +37,9 @@ public class CmoMetaDbPublisherPipeline {
             jobName = BatchConfiguration.LIMS_REQUEST_PUBLISHER_JOB;
             jobExecution = launchLimsRequestPublisherJob(ctx, commandLine.getOptionValue("r"),
                     commandLine.getOptionValue("s"), commandLine.getOptionValue("e"));
+        } else {
+            LOG.error("Must run application with at least option '-r' or '-s' - exiting...");
+            System.exit(1);
         }
         if (!jobExecution.getExitStatus().equals(ExitStatus.COMPLETED)) {
             LOG.error(jobName + " failed with exit status: " + jobExecution.getExitStatus());

@@ -179,24 +179,24 @@ public class LimsRequestUtil {
      * @return List
      */
     @Async("asyncLimsRequestThreadPoolTaskExecutor")
-    public CompletableFuture<Object> getSampleManifest(String sampleId) throws Exception {
+    public CompletableFuture<List<Object>> getSampleManifest(String sampleId) throws Exception {
         String manifestUrl = limsBaseUrl + limsSampleManifestEndpoint + sampleId;
         LOG.debug("Sending request for sample manifest with url:" + manifestUrl);
 
         RestTemplate restTemplate = getRestTemplate();
         HttpEntity<LinkedMultiValueMap<String, Object>> requestEntity = getRequestEntity();
-        Object sampleManifest = null;
+        Object[] sampleManifest = null;
         try {
             ResponseEntity responseEntity = restTemplate.exchange(manifestUrl,
                 HttpMethod.GET, requestEntity, Object[].class);
-            sampleManifest = Arrays.asList(responseEntity.getBody()).get(0);
+            sampleManifest = (Object[]) responseEntity.getBody();
         } catch (HttpServerErrorException e) {
             if (e.getStatusCode().equals(HttpStatus.INTERNAL_SERVER_ERROR)) {
                 LOG.error("Error encountered during attempt to fetch sample manifest for '"
                         + sampleId + "', request url: '" + manifestUrl + "'", e);
             }
         }
-        return CompletableFuture.completedFuture(sampleManifest);
+        return CompletableFuture.completedFuture(Arrays.asList(sampleManifest));
     }
 
     /**
@@ -245,7 +245,7 @@ public class LimsRequestUtil {
         this.limsRequestErrors.put(requestId, sList);
     }
 
-    public void printFailedRequestSamplesSummar() {
+    public void printFailedRequestSamplesSummary() {
         System.out.println(generateFailedRequestSamplesSummary());
     }
 

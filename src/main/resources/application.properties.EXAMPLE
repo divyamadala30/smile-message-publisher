@@ -1,3 +1,5 @@
+spring.batch.job.enabled=false
+
 # client-specific topics to listen or publish on
 igo.new_request_topic=
 
