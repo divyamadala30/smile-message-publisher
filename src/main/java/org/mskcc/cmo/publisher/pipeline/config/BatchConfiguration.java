@@ -1,8 +1,11 @@
-package org.mskcc.cmo.publisher.pipeline;
+package org.mskcc.cmo.publisher.pipeline.config;
 
 import java.util.Map;
 import java.util.concurrent.Future;
 import org.mskcc.cmo.messaging.Gateway;
+import org.mskcc.cmo.publisher.pipeline.MetaDbFilePublisherListener;
+import org.mskcc.cmo.publisher.pipeline.MetaDbFilePublisherReader;
+import org.mskcc.cmo.publisher.pipeline.MetaDbFilePublisherWriter;
 import org.mskcc.cmo.publisher.pipeline.limsrest.LimsRequestListener;
 import org.mskcc.cmo.publisher.pipeline.limsrest.LimsRequestProcessor;
 import org.mskcc.cmo.publisher.pipeline.limsrest.LimsRequestReader;
@@ -39,6 +42,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 public class BatchConfiguration {
 
     public static final String LIMS_REQUEST_PUBLISHER_JOB = "limsRequestPublisherJob";
+    public static final String METADB_FILE_PUBLISHER_JOB = "metadbFilePublisherJob";
 
     @Value("${chunk.interval:10}")
     private Integer chunkInterval;
@@ -64,9 +68,10 @@ public class BatchConfiguration {
     @Autowired
     private Gateway messagingGateway;
 
-    @Autowired
-    public void initGatewayConnection() throws Exception {
+    @Bean
+    public Gateway messagingGateway() throws Exception {
         messagingGateway.connect();
+        return messagingGateway;
     }
 
     /**
@@ -77,6 +82,17 @@ public class BatchConfiguration {
     public Job limsRequestPublisherJob() {
         return jobBuilderFactory.get(LIMS_REQUEST_PUBLISHER_JOB)
                 .start(limsRequestPublisherStep())
+                .build();
+    }
+
+    /**
+     * metadbFilePublisherJob
+     * @return
+     */
+    @Bean
+    public Job metadbFilePublisherJob() {
+        return jobBuilderFactory.get(METADB_FILE_PUBLISHER_JOB)
+                .start(metadbFilePublisherStep())
                 .build();
     }
 
@@ -93,6 +109,49 @@ public class BatchConfiguration {
                 .processor(asyncItemProcessor())
                 .writer(asyncItemWriter())
                 .build();
+    }
+
+    /**
+     * metadbFilePublisherStep
+     * @return
+     */
+    @Bean
+    public Step metadbFilePublisherStep() {
+        return stepBuilderFactory.get("metadbFilePublisherStep")
+                .listener(metadbFilePublisherListener())
+                .<Map<String, String>, Map<String, String>>chunk(10)
+                .reader(metadbFilePublisherReader())
+                .writer(metadbFilePublisherWriter())
+                .build();
+    }
+
+    /**
+     * metadbFilePublisherReader
+     * @return
+     */
+    @Bean
+    @StepScope
+    public ItemStreamReader<Map<String, String>> metadbFilePublisherReader() {
+        return new MetaDbFilePublisherReader();
+    }
+
+    /**
+     * metadbFilePublisherWriter
+     * @return
+     */
+    @Bean
+    @StepScope
+    public ItemStreamWriter<Map<String, String>> metadbFilePublisherWriter() {
+        return new MetaDbFilePublisherWriter();
+    }
+
+    /**
+     * metadbFilePublisherListener
+     * @return
+     */
+    @Bean
+    public StepExecutionListener metadbFilePublisherListener() {
+        return new MetaDbFilePublisherListener();
     }
 
     /**
